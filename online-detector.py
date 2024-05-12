@@ -2,19 +2,36 @@ import serial
 import time
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 
 CLIport = {}
 Dataport = {}
 byteBuffer = np.zeros(2 ** 15, dtype='uint8')
 byteBufferLength = 0
 
-configFileName = "/config_files/xwr16xx_profile_2024_03_29T16_02_25_112.cfg"
+configFileName = "config_files/AWR294X_Range_Profile_Empty.cfg"
 
 
 # ------------------------------------------------------------------
+def cell_averaging_peak_detector(matrix, threshold=0.5):
+    row_means = np.mean(matrix, axis=1)
+    max_values = np.max(matrix, axis=1)
+    peak_values = (row_means + max_values) / 2
+    peak_detected_matrix = np.zeros_like(matrix, dtype=int)
+    for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]):
+            if matrix[i, j] >= threshold and matrix[i, j] >= peak_values[i]:
+                peak_detected_matrix[i, j] = 1
+    return peak_detected_matrix
+
 
 def range_profile_classifier(range_profile):
-    print(range_profile)
+    plt.clf()
+    range_profile = 20 * np.log10(range_profile)
+    stacked_arr = np.vstack((range_profile,) * 10)
+    img = cell_averaging_peak_detector(stacked_arr)
+    plt.imshow(img)
+    plt.pause(0.1)
 
 
 # Function to configure the serial ports and send the data from
@@ -30,12 +47,12 @@ def serialConfig(configFileName):
             # Open the serial ports for the configuration and the data ports
 
             # Raspberry Pi / Ubuntu
-            CLIport = serial.Serial('/dev/ttyACM0', 115200)
-            Dataport = serial.Serial('/dev/ttyACM1', 921600)
+            # CLIport = serial.Serial('/dev/ttyACM0', 115200)
+            # Dataport = serial.Serial('/dev/ttyACM1', 921600)
 
             # Windows
-            # CLIport = serial.Serial('COM4', 115200)
-            # Dataport = serial.Serial('COM5', 852272)
+            CLIport = serial.Serial('COM4', 115200)
+            Dataport = serial.Serial('COM5', 852272)
 
             port_found = True
 
