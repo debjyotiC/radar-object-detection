@@ -30,6 +30,22 @@ def range_profile_classifier(range_profile):
     range_profile = 20 * np.log10(range_profile)
     stacked_arr = np.vstack((range_profile,) * 10)
     img = cell_averaging_peak_detector(stacked_arr)
+
+    overall_sum = np.sum(img)
+
+    print(overall_sum)
+
+    if overall_sum > 160.0:
+        occupancy_type = "object detected"
+        detected = True
+    else:
+        occupancy_type = "no object detected"
+        detected = False
+
+    obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected, "Obj_Class": None, "Obj_Distance": None}
+
+    print(obj_dict)
+
     plt.imshow(img)
     plt.pause(0.1)
 
