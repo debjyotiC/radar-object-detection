@@ -25,17 +25,22 @@ def cell_averaging_peak_detector(matrix, threshold=0.5):
     return peak_detected_matrix
 
 
-def range_profile_classifier(range_profile):
+def range_profile_classifier(range_profile, range_array):
     plt.clf()
     range_profile = 20 * np.log10(range_profile)
     stacked_arr = np.vstack((range_profile,) * 10)
-    img = cell_averaging_peak_detector(stacked_arr)
+    img = cell_averaging_peak_detector(stacked_arr, threshold=70.1)
+
+    ground_mask = np.ones(img.shape)
+    ground_mask[:, :10] = 0
+
+    img = img * ground_mask  # Broot force suppress ground clutter
 
     overall_sum = np.sum(img)
 
-    print(overall_sum)
+    # print(overall_sum)
 
-    if overall_sum > 160.0:
+    if overall_sum > 60.0:
         occupancy_type = "object detected"
         detected = True
     else:
@@ -45,8 +50,10 @@ def range_profile_classifier(range_profile):
     obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected, "Obj_Class": None, "Obj_Distance": None}
 
     print(obj_dict)
-
-    plt.imshow(img)
+    plt.title(f"{overall_sum} with {occupancy_type}")
+    plt.imshow(img, extent=[range_array[0], range_array[-1], 0, 10])
+    plt.xlabel("Range (m)")
+    plt.ylabel("Time (s)")
     plt.pause(0.1)
 
 
@@ -306,7 +313,8 @@ def readAndParseData16xx(Dataport, configParameters):
             elif tlv_type == MMWDEMO_UART_MSG_RANGE_PROFILE:
                 rangeProfile = byteBuffer[idX:idX + (tlv_length - 8)].view(np.uint16)
                 idX += (tlv_length - 8)
-                range_profile_classifier(rangeProfile)
+                rangeArray = np.array(range(configParameters["numRangeBins"])) * configParameters["rangeIdxToMeters"]
+                range_profile_classifier(rangeProfile, rangeArray)
 
             elif tlv_type == MMWDEMO_OUTPUT_MSG_RANGE_DOPPLER_HEAT_MAP:
 
