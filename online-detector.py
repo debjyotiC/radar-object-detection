@@ -40,14 +40,14 @@ def range_profile_classifier(range_profile, range_array):
 
     # print(overall_sum)
 
-    if overall_sum > 60.0:
+    if overall_sum > 70.0:
         occupancy_type = "object detected"
         detected = True
     else:
         occupancy_type = "no object detected"
         detected = False
 
-    obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected, "Obj_Class": None, "Obj_Distance": None}
+    obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected}
 
     print(obj_dict)
     plt.title(f"{overall_sum} with {occupancy_type}")
