@@ -9,7 +9,7 @@ Dataport = {}
 byteBuffer = np.zeros(2 ** 15, dtype='uint8')
 byteBufferLength = 0
 
-configFileName = "config_files/AWR294X_Range_Profile_Empty.cfg"
+configFileName = "config_files/xwr16xx_Range_Profile.cfg"
 
 
 # ------------------------------------------------------------------
@@ -39,18 +39,19 @@ def range_profile_classifier(range_profile, range_array):
     overall_sum = np.sum(img)
 
     # print(overall_sum)
+    thresh = 70.0    # change it according to your need
 
-    if overall_sum > 70.0:
-        occupancy_type = "object detected"
+    if overall_sum > thresh:
+        occupancy_type = "path not clear"
         detected = True
     else:
-        occupancy_type = "no object detected"
+        occupancy_type = "path clear"
         detected = False
 
-    obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected}
+    obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected, "Threshold": thresh, "Sum": overall_sum}
 
     print(obj_dict)
-    plt.title(f"{overall_sum} with {occupancy_type}")
+    plt.title(f"{occupancy_type}")
     plt.imshow(img, extent=[range_array[0], range_array[-1], 0, 10])
     plt.xlabel("Range (m)")
     plt.ylabel("Time (s)")
@@ -70,12 +71,12 @@ def serialConfig(configFileName):
             # Open the serial ports for the configuration and the data ports
 
             # Raspberry Pi / Ubuntu
-            # CLIport = serial.Serial('/dev/ttyACM0', 115200)
-            # Dataport = serial.Serial('/dev/ttyACM1', 921600)
+            CLIport = serial.Serial('/dev/ttyACM0', 115200)
+            Dataport = serial.Serial('/dev/ttyACM1', 921600)
 
             # Windows
-            CLIport = serial.Serial('COM4', 115200)
-            Dataport = serial.Serial('COM5', 852272)
+            # CLIport = serial.Serial('COM4', 115200)
+            # Dataport = serial.Serial('COM5', 852272)
 
             port_found = True
 
