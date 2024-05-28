@@ -2,6 +2,7 @@ import serial
 import time
 import numpy as np
 import os
+from database_class import DatabaseConnector
 import matplotlib.pyplot as plt
 
 CLIport = {}
@@ -9,7 +10,11 @@ Dataport = {}
 byteBuffer = np.zeros(2 ** 15, dtype='uint8')
 byteBufferLength = 0
 
-configFileName = "config_files/xwr16xx_Range_Profile.cfg"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+configFileName = f"{script_dir}/config_files/spot_3.cfg"
+
+db_connector = DatabaseConnector(f"{script_dir}/database/radar_database.db")
 
 
 # ------------------------------------------------------------------
@@ -39,7 +44,7 @@ def range_profile_classifier(range_profile, range_array):
     overall_sum = np.sum(img)
 
     # print(overall_sum)
-    thresh = 70.0    # change it according to your need
+    thresh = 70.0  # change it according to your need
 
     if overall_sum > thresh:
         occupancy_type = "path not clear"
@@ -51,6 +56,11 @@ def range_profile_classifier(range_profile, range_array):
     obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected, "Threshold": thresh, "Sum": overall_sum}
 
     print(obj_dict)
+
+    db_connector.connect()
+    db_connector.create_schema()
+    db_connector.insert_data(obj_dict)
+
     plt.title(f"{occupancy_type}")
     plt.imshow(img, extent=[range_array[0], range_array[-1], 0, 10])
     plt.xlabel("Range (m)")
