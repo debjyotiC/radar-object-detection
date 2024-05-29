@@ -2,6 +2,7 @@ import serial
 import time
 import numpy as np
 import os
+from central_db_update import write_bunker_status
 from database_class import DatabaseConnector
 import matplotlib.pyplot as plt
 
@@ -48,14 +49,16 @@ def range_profile_classifier(range_profile, range_array):
 
     if overall_sum > thresh:
         occupancy_type = "path not clear"
-        detected = True
+        detected = "Yes"
     else:
         occupancy_type = "path clear"
-        detected = False
+        detected = "No"
 
     obj_dict = {"Obj_Detected": occupancy_type, "Obj_detection_flag": detected, "Threshold": thresh, "Sum": overall_sum}
 
     print(obj_dict)
+
+    write_bunker_status(detected)
 
     db_connector.connect()
     db_connector.create_schema()
